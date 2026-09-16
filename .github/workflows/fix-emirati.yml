@@ -10,19 +10,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Replace embedded thumbnail
+      - name: Replace broken thumbnail reference
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
           p=Path('index.html')
           s=p.read_text()
-          start=s.find('src="data:image/webp;base64,')
-          if start == -1:
-              print('No embedded thumbnail found')
-              raise SystemExit(0)
-          end=s.find('"', start+5)
-          s=s[:start]+'src="assets/emirato.png"'+s[end:]
-          s=s.replace('alt="assets/emirato.png"','alt="Emirati Women\'s Day thumbnail"',1)
+          s=re.sub(r'src="data:image/webp;base64,[^\"]+"', 'src="assets/emirato.png"', s, count=1)
+          s=s.replace('src="assets/emirato.png""', 'src="assets/emirato.png"', 1)
+          s=s.replace('alt="assets/emirato.png"', 'alt="Emirati Women\'s Day thumbnail"', 1)
           p.write_text(s)
           PY
       - name: Commit fix
@@ -30,7 +27,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
-          git diff --cached --quiet || git commit -m 'Fix Emirati thumbnail path'
+          git diff --cached --quiet || git commit -m 'Fix Emirati thumbnail reference'
           git push
       - name: Request Pages build
         run: gh api -X POST /repos/${{ github.repository }}/pages/builds
