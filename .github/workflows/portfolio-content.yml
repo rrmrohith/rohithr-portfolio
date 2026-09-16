@@ -1,0 +1,37 @@
+name: Update portfolio content
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  update:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update content
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          old='''<div class="createGrid"><div class="createCard reveal"><strong>Reels & Short-form</strong><span>Fast, engaging edits built for Instagram, TikTok and other short-form platforms.</span></div><div class="createCard reveal delay1"><strong>Social Media Content & Handling</strong><span>Content preparation, creative support and social media handling for consistent publishing.</span></div><div class="createCard reveal delay2"><strong>Event & Wedding Content</strong><span>Highlights, recap videos and memorable short edits from programmes, weddings and events.</span></div><div class="createCard reveal delay3"><strong>Brand & Promotional Video</strong><span>Clean promotional edits, product-focused content and visual storytelling for businesses.</span></div></div>'''
+          new='''<div class="createGrid"><div class="createCard reveal"><strong>Reels & Short-form</strong><span>Fast, engaging edits built for Instagram, TikTok and other short-form platforms.</span></div><div class="createCard reveal delay1"><strong>Talking Head & Educational Reels</strong><span>Clean, engaging edits for personal brands, educators, experts and knowledge-led content.</span></div><div class="createCard reveal delay2"><strong>Podcast Editing</strong><span>Long-form podcast footage turned into polished episodes and social-ready clips.</span></div><div class="createCard reveal delay3"><strong>Medical Content</strong><span>Clear, professional edits for medical, healthcare and educational content.</span></div><div class="createCard reveal"><strong>Commercial Video</strong><span>Short commercial and promotional videos designed for brands, products and businesses.</span></div><div class="createCard reveal delay1"><strong>Event & Wedding Content</strong><span>Highlights, recap videos and memorable short edits from programmes, weddings and events.</span></div><div class="createCard reveal delay2"><strong>Social Media Content & Handling</strong><span>Content preparation, creative support and social media handling for consistent publishing.</span></div><div class="createCard reveal delay3"><strong>Brand & Promotional Video</strong><span>Clean promotional edits, product-focused content and visual storytelling for businesses.</span></div></div>'''
+          if old not in s: raise SystemExit('target create grid not found')
+          s=s.replace(old,new,1)
+          marker='''<div class="boxes"><div class="box reveal"><strong>Brands & Businesses</strong><span>Reels, product content, promotional edits and social media handling.</span></div><div class="box reveal delay1"><strong>Agencies & Teams</strong><span>Editing support, quick-turnaround social content and campaign assets.</span></div><div class="box reveal delay2"><strong>Events & Experiences</strong><span>Event highlights, wedding edits, programme coverage and recap videos.</span></div></div>'''
+          replacement='''<div class="boxes"><div class="box reveal"><strong>UAE-based Clients</strong><span>Video editing and social-first creative support for UAE-based clients and businesses.</span></div><div class="box reveal delay1"><strong>Brands & Businesses</strong><span>Reels, short commercials, product content, promotional edits and social media handling.</span></div><div class="box reveal delay2"><strong>Creators & Experts</strong><span>Talking-head, educational, podcast and personal-brand content built for social platforms.</span></div><div class="box reveal"><strong>Healthcare Content</strong><span>Professional, clear and audience-friendly editing for medical and educational content.</span></div><div class="box reveal delay1"><strong>Agencies & Teams</strong><span>Editing support, quick-turnaround social content and campaign assets.</span></div><div class="box reveal delay2"><strong>Events & Experiences</strong><span>Event highlights, wedding edits, programme coverage and recap videos.</span></div></div>'''
+          if marker in s: s=s.replace(marker,replacement,1)
+          old_about='''<p class="reveal">I have freelance experience creating reels and short videos for college programmes, weddings, events and other creative projects. My strongest workflow is CapCut Pro, while I’m expanding into Adobe Premiere Pro as my next professional editing skill.</p>'''
+          new_about='''<p class="reveal">I create reels, talking-head videos, educational content, podcast edits, medical content, short commercial videos, wedding and event highlights, and other social-first projects. I have also worked on content for UAE-based clients.</p>'''
+          if old_about in s: s=s.replace(old_about,new_about,1)
+          p.write_text(s,encoding='utf-8')
+      - name: Commit and remove workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git rm .github/workflows/portfolio-content.yml
+          git commit -m 'Expand content creator services and UAE client work'
+          git push
