@@ -1,0 +1,35 @@
+name: Add Neuro thumbnail
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  update:
+    if: "!contains(github.event.head_commit.message, '[thumb-update]')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add thumbnail and update portfolio
+        env:
+          IMG_B64: "UklGRgogAQBXRUJQVlA4IP4fAQDQ1wSdASqwBKMCPnk4l0kkoyoupfTrGdAPCWVu1MVO2099mbTVkfIe"
+        run: |
+          python - <<'PY'
+          import base64, os
+          b=base64.b64decode(os.environ['IMG_B64'])
+          open('assets/neuro-thumb.webp','wb').write(b)
+          p='index.html'
+          s=open(p,encoding='utf-8').read()
+          old='<div class="thumb"><div class="thumbTitle">NEURO · HEALTH</div></div>'
+          new='<div class="thumb"><img src="assets/neuro-thumb.webp" alt="Neuro Educational thumbnail"><div class="thumbTitle">NEURO · HEALTH</div></div>'
+          if old not in s:
+              raise SystemExit('Neuro thumbnail target not found')
+          s=s.replace(old,new,1)
+          open(p,'w',encoding='utf-8').write(s)
+          PY
+          rm -f .github/workflows/add-neuro-thumbnail.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html assets/neuro-thumb.webp .github/workflows/add-neuro-thumbnail.yml
+          git commit -m "[thumb-update] Add Neuro portfolio thumbnail"
+          git push
