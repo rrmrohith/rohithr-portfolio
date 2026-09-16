@@ -1,31 +1,31 @@
-name: Add Color Grading thumbnail
+name: Fix WhatsApp portfolio icon
 on:
   push:
     branches: [main]
 permissions:
   contents: write
 jobs:
-  update:
-    if: "!contains(github.event.head_commit.message, '[color-thumb-update]')"
+  fix:
+    if: "!contains(github.event.head_commit.message, '[wa-icon-fix]')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install thumbnail
+      - name: Fix WhatsApp icon
         run: |
           python - <<'PY'
-          import base64
-          data='''443YyOIl+0Fw0sJqTsFbNk+GAWCK2hOMuY+TltYI+TTd+7pwM8Oe3Mb2s6TnSiGis2lF4bfgzJnKci/DNj0LyDyeCJCM/Ei4mbffxCJxn86hf9xwGDiV3KXCjgG/YWfaB9ngy7DjCZAPQcGWr2iP1aCDZ3lhr6OTeK8SrX+dDnVOnoB8NbrOeby1mVwUBMdsiScI1HU1aas7iOVcXUIJg41j7sxE1UGNuReG0cywk7yc/7pPZ2uDDZgIFQg0pxxAh51+ZVZpthQPYOm/x7TWa8pXFE7A929X3XoZ6jCPi/W59NVunsPWBXN1TzTe9XelhUTPOt3wBpaIySLc0F27AujLkwNUOuwanbnIV091j+i1rxw5v29BEKX4U6...'''
-          open('assets/color-grading-thumb.webp','wb').write(base64.b64decode(data))
-          p='index.html'
-          s=open(p,encoding='utf-8').read()
-          old='<div class="thumb"><img src="assets/color-grading-thumb.webp" alt="Color Grading thumbnail"><div class="thumbTitle">COLOR · POST</div></div>'
-          if old not in s:
-              raise SystemExit('Color Grading card target not found')
-          open(p,'w',encoding='utf-8').write(s)
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          start=s.find('<a href="https://wa.me/917558017185" target="_blank" aria-label="WhatsApp"><svg')
+          if start < 0:
+              raise SystemExit('WhatsApp SVG not found')
+          end=s.find('</a>',start)+4
+          new='<a class="whatsapp" href="https://wa.me/917558017185" target="_blank" aria-label="WhatsApp"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp"></a>'
+          s=s[:start]+new+s[end:]
+          p.write_text(s,encoding='utf-8')
           PY
-          rm -f .github/workflows/add-colorgrading-thumbnail.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/color-grading-thumb.webp .github/workflows/add-colorgrading-thumbnail.yml
-          git commit -m "[color-thumb-update] Add Color Grading portfolio thumbnail"
+          git add index.html
+          git commit -m "[wa-icon-fix] Fix WhatsApp contact icon"
           git push
