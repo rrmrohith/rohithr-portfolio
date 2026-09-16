@@ -1,0 +1,38 @@
+name: Fix Emirati thumbnail
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+  pages: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Replace embedded thumbnail
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          start=s.find('src="data:image/webp;base64,')
+          if start == -1:
+              print('No embedded thumbnail found')
+              raise SystemExit(0)
+          end=s.find('"', start+5)
+          s=s[:start]+'src="assets/emirato.png"'+s[end:]
+          s=s.replace('alt="assets/emirato.png"','alt="Emirati Women\'s Day thumbnail"',1)
+          p.write_text(s)
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || git commit -m 'Fix Emirati thumbnail path'
+          git push
+      - name: Request Pages build
+        run: gh api -X POST /repos/${{ github.repository }}/pages/builds
+        env:
+          GH_TOKEN: ${{ github.token }}
