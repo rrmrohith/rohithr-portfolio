@@ -14,17 +14,18 @@ jobs:
         run: |
           python - <<'PY'
           import base64
-          data='''56176BASE64PLACEHOLDER'''
+          data='''443YyOIl+0Fw0sJqTsFbNk+GAWCK2hOMuY+TltYI+TTd+7pwM8Oe3Mb2s6TnSiGis2lF4bfgzJnKci/DNj0LyDyeCJCM/Ei4mbffxCJxn86hf9xwGDiV3KXCjgG/YWfaB9ngy7DjCZAPQcGWr2iP1aCDZ3lhr6OTeK8SrX+dDnVOnoB8NbrOeby1mVwUBMdsiScI1HU1aas7iOVcXUIJg41j7sxE1UGNuReG0cywk7yc/7pPZ2uDDZgIFQg0pxxAh51+ZVZpthQPYOm/x7TWa8pXFE7A929X3XoZ6jCPi/W59NVunsPWBXN1TzTe9XelhUTPOt3wBpaIySLc0F27AujLkwNUOuwanbnIV091j+i1rxw5v29BEKX4U6...'''
           open('assets/color-grading-thumb.webp','wb').write(base64.b64decode(data))
           p='index.html'
           s=open(p,encoding='utf-8').read()
-          if 'src="assets/color-grading-thumb.webp"' not in s:
-              raise SystemExit('Color Grading card not found')
+          old='<div class="thumb"><img src="assets/color-grading-thumb.webp" alt="Color Grading thumbnail"><div class="thumbTitle">COLOR · POST</div></div>'
+          if old not in s:
+              raise SystemExit('Color Grading card target not found')
           open(p,'w',encoding='utf-8').write(s)
           PY
           rm -f .github/workflows/add-colorgrading-thumbnail.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add assets/color-grading-thumb.webp .github/workflows/add-colorgrading-thumbnail.yml
-          git commit -m "[color-thumb-update] Update Color Grading portfolio thumbnail"
+          git commit -m "[color-thumb-update] Add Color Grading portfolio thumbnail"
           git push
