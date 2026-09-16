@@ -1,0 +1,45 @@
+name: Add creative tools
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  update-tools:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update tools section
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          css='''.toolIcon.canva{background:#ffffff}.toolIcon.vn{background:#ffffff}.toolIcon.meta{background:#ffffff}.toolIcon.instagram{background:#ffffff}.toolIcon.fallback:before{font-size:20px;font-weight:900;color:#111}.toolIcon.canva.fallback:before{content:'C'}.toolIcon.vn.fallback:before{content:'VN'}.toolIcon.meta.fallback:before{content:'M'}.toolIcon.instagram.fallback:before{content:'IG'}'''
+          if '.toolIcon.canva{' not in s:
+              s=s.replace('</style>',css+'</style>',1)
+          marker='<div class="toolgrid">'
+          start=s.find(marker)
+          if start==-1: raise SystemExit('toolgrid not found')
+          end=s.find('</div></div></div></section>',start)
+          if end==-1: raise SystemExit('toolgrid end not found')
+          if 'Canva' not in s[start:end]:
+              cards='''<div class="tool reveal"><div class="toolIcon canva"><img src="assets/tools/canva.png" alt="Canva" onerror="this.style.display='none';this.parentElement.classList.add('fallback')"></div><div class="toolName">Canva</div><div class="toolStatus">Social graphics & content design</div></div><div class="tool reveal delay1"><div class="toolIcon vn"><img src="assets/tools/vn.png" alt="VN Video Editor" onerror="this.style.display='none';this.parentElement.classList.add('fallback')"></div><div class="toolName">VN</div><div class="toolStatus">Mobile video editing</div></div><div class="tool reveal delay2"><div class="toolIcon meta"><img src="assets/tools/meta-business-suite.png" alt="Meta Business Suite" onerror="this.style.display='none';this.parentElement.classList.add('fallback')"></div><div class="toolName">Meta Business Suite</div><div class="toolStatus">Social publishing & insights</div></div><div class="tool reveal delay3"><div class="toolIcon instagram"><img src="assets/tools/instagram.png" alt="Instagram" onerror="this.style.display='none';this.parentElement.classList.add('fallback')"></div><div class="toolName">Instagram</div><div class="toolStatus">Creator & social platform</div></div>'''
+              s=s[:end]+cards+s[end:]
+          p.write_text(s,encoding='utf-8')
+      - name: Download official Play Store icons
+        run: |
+          mkdir -p assets/tools
+          curl -L --fail --retry 3 'https://play-lh.googleusercontent.com/Vz2scDEcbSvWxgPV7IcmD0ECtvvuFluOYMaJf0h7O2nwAbmB4hyh7lJj9xPFZlsUZLottcE5dwqNQKxzr-mY5w%3Dw240-h480' -o assets/tools/canva.png
+          curl -L --fail --retry 3 'https://play-lh.googleusercontent.com/AdmVEf1YsnbcTx7OFNNbJkqLbLewomf6xR4wWnazycJJC4llEXjmBOixxcgGt3TFa_IZszY9gw-4UOGYKlaKMw%3Dw240-h480' -o assets/tools/vn.png
+          curl -L --fail --retry 3 'https://play-lh.googleusercontent.com/SXZWx5m3_oF2AxOg9V4YUW2Z3Tz0mADTPi75ulcoxkCQpxwGZU0xF0i5nbkpqkD_pvne2si9Dkh9EAQEyJGdeQ%3Dw240-h480' -o assets/tools/meta-business-suite.png
+          curl -L --fail --retry 3 'https://play-lh.googleusercontent.com/yHi59jmO_lVamcyJ1i3rM1_E8bAiAspShnGjjURq05ipQQSUksO3QVEsXTegRSqul038-4YNA7O644XAcx251Q%3Dw240-h480' -o assets/tools/instagram.png
+      - name: Commit and remove temporary workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html assets/tools
+          git rm .github/workflows/add-tools.yml
+          git commit -m 'Add creative tools with Play Store icons'
+          git push
