@@ -1,0 +1,41 @@
+name: Update Gmail icon
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Replace Gmail icon
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text()
+          old = '<a href="https://mail.google.com/mail/?view=cm&fs=1&to=rrmrohith%40gmail.com" target="_blank" aria-label="Email"><svg viewBox="0 0 24 24"><path fill="#EA4335" d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z"/></svg></a>'
+          new = '<a href="https://mail.google.com/mail/?view=cm&fs=1&to=rrmrohith%40gmail.com" target="_blank" aria-label="Email"><img src="https://play-lh.googleusercontent.com/KSuaRLiI_FlDP8cM4MzJ23ml3og5Hxb9AapaGTMZ2GgR103mvJ3AAnoOFz1yheeQBBI%3Dw240-h480" alt="Gmail"></a>'
+          if old not in s:
+              raise SystemExit('Gmail icon markup not found; aborting without changes.')
+          s = s.replace(old, new, 1)
+          marker = '.contact .linkedin img{width:44px;height:44px;border-radius:10px;object-fit:contain}'
+          addition = marker + '.contact>a:first-child img{width:44px;height:44px;border-radius:10px;object-fit:contain}'
+          if marker not in s:
+              raise SystemExit('CSS marker not found; aborting without changes.')
+          s = s.replace(marker, addition, 1)
+          p.write_text(s)
+          PY
+      - name: Commit change
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Use official Gmail Play Store icon' || exit 0
+          git push
+      - name: Remove temporary workflow
+        if: always()
+        run: |
+          git rm .github/workflows/gmail-icon-fix.yml
+          git commit -m 'Remove temporary icon workflow' || exit 0
+          git push
